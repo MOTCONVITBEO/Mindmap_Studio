@@ -1,16 +1,24 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User, signOut, Auth } from 'firebase/auth';
 
-// Initialize Firebase safely
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Fallback empty config to prevent crash if not configured
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || ""
+};
+
+const app = getApps().length > 0 ? getApp() : (firebaseConfig.apiKey ? initializeApp(firebaseConfig) : null);
+export const auth: Auth | null = app ? getAuth(app) : null;
 
 export const provider = new GoogleAuthProvider();
 // Request Google Drive file scope for saving and opening mindmap files
 provider.addScope('https://www.googleapis.com/auth/drive.file');
 
-// In-memory token cache (Do NOT store in localStorage or sessionStorage per skill guidelines)
+// In-memory token cache (Do NOT store in localStorage or sessionStorage per security guidelines)
 let cachedAccessToken: string | null = null;
 let isSigningIn = false;
 
@@ -18,13 +26,17 @@ export const initAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
 ) => {
+  if (!auth) {
+    if (onAuthFailure) onAuthFailure();
+    return () => {};
+  }
+
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
       if (cachedAccessToken) {
         if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
       } else if (!isSigningIn) {
         // User logged in on Firebase, but access token memory cache might be empty on reload.
-        // We will prompt or preserve user state.
         if (onAuthFailure) onAuthFailure();
       }
     } else {
@@ -35,6 +47,10 @@ export const initAuth = (
 };
 
 export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
+  if (!auth) {
+    throw new Error('Firebase Auth is not initialized. Please set VITE_FIREBASE_API_KEY in your environment.');
+  }
+
   try {
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
@@ -58,6 +74,8 @@ export const getAccessToken = async (): Promise<string | null> => {
 };
 
 export const logout = async (): Promise<void> => {
-  await signOut(auth);
+  if (auth) {
+    await signOut(auth);
+  }
   cachedAccessToken = null;
 };
