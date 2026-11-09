@@ -1,20 +1,17 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Mindmap Studio
 
-# Run and deploy your AI Studio app
+An interactive visual canvas designed for screenwriters, storytellers, and creators to organize story arcs, character profiles, 3-act narrative structures, and creative beats.
 
-This contains everything you need to run your app locally.
+## Key Features
+- **Dynamic Mindmap & Flowchart Canvas:** Drag-and-drop node management with real-time connection routing.
+- **Character Profiling Engine:** Attribute scoring, relationship mapping, and character arc tracking.
+- **Narrative Outlining:** 3-Act structure breakdown and treatment visualization.
 
-View your app in AI Studio: https://ai.studio/apps/e344462e-d6ae-45d9-b8d0-f94cb916acb8
+## Tech Stack
+- Frontend: React, TypeScript, Vite, Tailwind CSS
+- Tooling: Bun / NPM
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
+## Getting Started
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
